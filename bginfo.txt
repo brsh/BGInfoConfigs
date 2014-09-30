@@ -1,0 +1,11 @@
+BGInfo
+
+Add:
+SQL instances, version
+IIS (yes or no)
+
+
+CLIENTNAME
+SESSIONNAME
+
+

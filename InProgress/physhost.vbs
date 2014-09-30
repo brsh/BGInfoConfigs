@@ -1,3 +1,4 @@
+' Only works for Hyper-V
 On Error Resume Next
 strValue = ""
 
@@ -28,11 +29,13 @@ Inparams.Ssubkeyname = "Software\Microsoft\Virtual Machine\Guest\Parameters"
 Inparams.Svaluename = "PhysicalHostName"
 set Outparams = objStdRegProv.ExecMethod_("GetStringValue", Inparams,,objCtx)
 
+strValue = "Yes"
+
 'in case of Null, add empty text
-strValue = Outparams.SValue & ""
- 
-If Len(Trim(strValue)) = 0 Then 
-	strValue = "This Ain't Virtual, Fool"
-End If
+If Len(Outparams.SValue & "") = 0 Then
+	strValue = "No, but host is unknown"
+Else
+	strValue = "No; Host is: " & Outparams.SValue & ""
+End if
  
 Echo strValue
