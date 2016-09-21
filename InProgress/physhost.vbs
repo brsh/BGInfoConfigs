@@ -38,4 +38,4 @@ Else
 	strValue = "No; Host is: " & Outparams.SValue & ""
 End if
  
-Echo strValue
+wscript.Echo strValue

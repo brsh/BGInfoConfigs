@@ -1,16 +1,14 @@
-' Outputs: Driveletter - [Volumename] - FreeSpace
-' 
-' Written by Inge B. (ibr@lyse.net) for use with BGInfo 
+' Outputs Drive information - including label and free and total space
+' Output format is a table - with line markings (or not, Set bColMarkOn var below)
+' 	For BGInfo - the border requires a fixed-space font (like Courier New)
 
 Set objWMIService = GetObject("winmgmts:\\.\root\CIMV2") 
-Set colItems = objWMIService.ExecQuery _ 
-("SELECT * FROM Win32_LogicalDisk Where DriveType = 3") 
-
-'echo "  " & vbTab & PadRight("Free") & vbTab & PadRight("Free") & vbtab & PadRight("Total") & vbTab & "Format" & vbtab & "Label" 
+Set colItems = objWMIService.ExecQuery ("SELECT * FROM Win32_LogicalDisk Where DriveType = 3") 
 
 Dim bColMarkOn 
 bColMarkOn = True
 
+' Header Row
 Dim tTab, rR, cC
 Set tTab = New Table
 Set rR = tTab.NewRow
@@ -42,7 +40,7 @@ rR.BorderBottom = true
 rR.BorderTop = true
 tTab.AddRow(rR)
 
-
+' Drive Rows
 For Each objItem In colItems 
 	If IsNumeric(objItem.freespace) Then
 		sSpace = objItem.freespace
@@ -56,40 +54,43 @@ For Each objItem In colItems
 		 
 		If Len(Trim(sName)) = 0 Then sName = "No Label"
 		If sName = "" Then sName = "No Label"
+		
 		sFormat = objItem.FileSystem
-	    	'freespace = sDrive & vbTab & sSpace & " | " & sPercent & "% free " & vbTab & sSize & " total " & vbTab & sName & ""
-		'freespace = sDrive & vbTab & PadRight(sSpace) & vbTab & PadRight(sPercent & "%") & vbTab & PadRight(sSize) & vbTab & sFormat & vbTab & sName 
-    		'echo freespace
-Set rR = tTab.NewRow
-Set cC = rR.NewCol
-cC.Data = sDrive
-cC.Pad = "L"
-rR.AddCol(cC)
-Set cC = rR.NewCol
-cC.Data = sSpace
-cC.Pad = "R"
-rR.AddCol(cC)
-Set cC = rR.NewCol
-cC.Data = sPercent
-cC.Pad = "R"
-rR.AddCol(cC)
-Set cC = rR.NewCol
-cC.Data = sSize
-cC.Pad = "R"
-rR.AddCol(cC)
-Set cC = rR.NewCol
-cC.Data = sFormat
-cC.Pad = "C"
-rR.AddCol(cC)
-Set cC = rR.NewCol
-cC.Data = sName
-cC.Pad = "L"
-rR.AddCol(cC)
-rR.BorderBottom = False
-rR.BorderTop = False
-tTab.AddRow(rR)	
-	Else
-		'echo "No Data Available"
+		
+		'Letter'
+		Set rR = tTab.NewRow
+		Set cC = rR.NewCol
+		cC.Data = sDrive
+		cC.Pad = "L"
+		rR.AddCol(cC)
+		' Free Percentage
+		Set cC = rR.NewCol
+		cC.Data = sPercent & "%"
+		cC.Pad = "R"
+		rR.AddCol(cC)
+		' Free space
+		Set cC = rR.NewCol
+		cC.Data = sSpace
+		cC.Pad = "R"
+		' Total Space
+		rR.AddCol(cC)
+		Set cC = rR.NewCol
+		cC.Data = sSize
+		cC.Pad = "R"
+		' Drive format
+		rR.AddCol(cC)
+		Set cC = rR.NewCol
+		cC.Data = sFormat
+		cC.Pad = "C"
+		rR.AddCol(cC)
+		' Drive label
+		Set cC = rR.NewCol
+		cC.Data = sName
+		cC.Pad = "L"
+		rR.AddCol(cC)
+		rR.BorderBottom = False
+		rR.BorderTop = False
+		tTab.AddRow(rR)	
 	End If
 Next
 
@@ -152,16 +153,14 @@ Sub Output(oTable)
 		sOut = sOut & ColMark
 		If bColMarkOn Then
 			If rRow.RowNumber = tTab.alRows.Count Then
-				If ((oTable.BorderBottom) Or (rRow.BorderBottom)) Then
 					sOut = sOut & vbCrLf & DrawRowBorder(iWidth, "END")
-				Else
-					If rRow.BorderBottom Then sOut = sOut & vbCrLf & DrawRowBorder(iWidth, rRow.RowNumber)
-				End If
 			Else
-				If rRow.BorderBottom Then sOut = sOut & vbCrLf & DrawRowBorder(iWidth, rRow.RowNumber)
+				If rRow.BorderBottom Then sOut = sOut & vbCrLf & DrawRowBorder(iWidth, "END")
 			End If
 		End If
+	' BGInfo doesn't allow wscript.echo - so swap the comment marker on the next 2 lines
 	WScript.Echo sOut
+	'Echo sOut
 		sOut = ""
 	Next
 End Sub
@@ -185,8 +184,6 @@ End Function
 Function PadRight(sOrig, iLength)
 	'right justify a column of text so "123" becomese "   123"
 	Dim sRet
-	'If iLength < Len(sOrig)+1 Then iLength = Len(sOrig) + 2
-	'If iLength / 2 <> Roundit(iLength / 2, 0) Then iLength = iLength + 1
 	sRet = String(iLength - Len(sOrig), " ") & sOrig
 	PadRight = sRet
 End Function
@@ -194,7 +191,6 @@ End Function
 Function PadLeft(sOrig, iLength)
 	'left justify a column of text so "123" becomese "123   "
 	Dim sRet
-	'If iLength < Len(sOrig) Then iLength = Len(sOrig) 
 	sRet = sOrig & String(iLength - Len(sOrig), " ")
 	PadLeft = sRet
 End Function
@@ -202,8 +198,6 @@ End Function
 Function PadCenter(sOrig, iLength)
 	'Center justify a column of text so "123" becomese " 123 "
 	Dim sRet
-	'If iLength < Len(sOrig)+1 Then iLength = Len(sOrig) + 2
-	'If iLength / 2 <> Roundit(iLength / 2, 0) Then iLength = iLength + 1 
 	sRet = String((iLength - Len(sOrig))/2, " ") & sOrig & String((iLength - Len(sOrig))/2, " ")
 	PadCenter = sRet
 End Function

@@ -13,6 +13,8 @@ $RECYCLE.BIN/
 *.msi
 *.msm
 *.msp
+Bginfo.exe
+Eula.txt
 
 # =========================
 # Operating System Files
