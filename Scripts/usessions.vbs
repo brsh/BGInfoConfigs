@@ -70,8 +70,6 @@ Else
 	
 	If colSessions.Count = 0 Then 
 		' No interactive session found
-		'
-		'Wscript.Echo "No interactive user found" 
 	Else 
 		'Interactive session found
 		'
@@ -104,9 +102,6 @@ Else
 					End If
 					Ech PadLeft(sFName, 19) & PadLeft(sDomain & "\" & sUName, 20) & PadLeft(sType, 14) & PadLeft(WMIDateStringToDate(sStart), 20)
 				End If
-				' Show session start time
-				'
-				'Wscript.Echo "Start Time: " & objSession.StartTime 
 			End If
 		End If
 		Next 
