@@ -35,4 +35,4 @@ For Each oItem In colItems
    	sSockets = oItem.NumberofProcessors
 Next
 
-Echo sProcName & " (max " & MaxSpeed & ") in " & sSockets & " Sockets "
+Echo sCores & " physical / " & sLogical & " logical cores, per socket"
