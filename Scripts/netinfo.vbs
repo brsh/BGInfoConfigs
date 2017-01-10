@@ -47,7 +47,7 @@ If objItem.MACAddress = cNet(x).MACAddress Then
 		Rem check to see if it is an IPv6 address and whether we want it
 		If strIPAddress = "0.0.0.0" Then
 		Else
-			If InStr(strIPAddress, "::") = 0 Or blnShowIPv6 Then
+			If InStr(strIPAddress, ":") = 0 Or blnShowIPv6 Then
 				Rem Set up the correct adaptor name by stringing the first 12 characters and also the MAC address
 				strCaption = fnSubstring(objItem.Caption, 12, 1024) & " (" & objItem.MACAddress & ")"
 				Rem Format DHCP info if required
