@@ -1,7 +1,5 @@
 
 strComputer = "."   ' use "." for local computer 
-'strUser = "domain\user" ' comment this line for current user
-'strPassword = "password" ' comment this line for current user
 
 ' CONSTANTS
 '
@@ -75,9 +73,7 @@ Else
 		'
 		Ech PadLeft("Full Name", 19) & PadLeft("User Name", 20) & PadLeft("Type", 14) & PadLeft("Logon Time", 20)
 
-		For Each objSession in colSessions 
-		
-		If objSession.AuthenticationPackage = "Negotiate" then
+		For Each objSession in colSessions 		
 			If (objSession.LogonType = 2) or (objSession.LogonType = 10) then
 				Set colList = objWMI.ExecQuery("Associators of " _ 
 				& "{Win32_LogonSession.LogonId=" & objSession.LogonId & "} " _ 
@@ -103,7 +99,6 @@ Else
 					Ech PadLeft(sFName, 19) & PadLeft(sDomain & "\" & sUName, 20) & PadLeft(sType, 14) & PadLeft(WMIDateStringToDate(sStart), 20)
 				End If
 			End If
-		End If
 		Next 
 	End If 
 	
