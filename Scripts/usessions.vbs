@@ -1,5 +1,7 @@
 
 strComputer = "."   ' use "." for local computer 
+'strUser = "domain\user" ' comment this line for current user
+'strPassword = "password" ' comment this line for current user
 
 ' CONSTANTS
 '
@@ -40,7 +42,6 @@ For Each objOS in colOS
 Next
 
 If Instr(strName, "Windows 2000") > 0 Then
-
 	'-------------------------------------------------------------------
 	' Code for Windows 2000
 	'-------------------------------------------------------------------
@@ -50,13 +51,10 @@ If Instr(strName, "Windows 2000") > 0 Then
 	Set colComputer = objWMI.ExecQuery("Select * from Win32_ComputerSystem")
 	
 	For Each objComputer in colComputer
-		Wscript.Echo "User: " & objComputer.UserName
+		Echo "User: " & objComputer.UserName
 	Next
 
-	' ------------------------------------------------------------------
-	
 Else
-
 	' ------------------------------------------------------------------
 	' Code for Windows XP or later
 	' ------------------------------------------------------------------
@@ -71,9 +69,11 @@ Else
 	Else 
 		'Interactive session found
 		'
-		Ech PadLeft("Full Name", 19) & PadLeft("User Name", 20) & PadLeft("Type", 14) & PadLeft("Logon Time", 20)
+		bFoundSomeone = false
+		sResult = PadLeft("Full Name", 19) & PadLeft("User Name", 20) & PadLeft("Type", 14) & PadLeft("Logon Time", 20)
+		sResult = sResult & vbCrLf
 
-		For Each objSession in colSessions 		
+		For Each objSession in colSessions 
 			If (objSession.LogonType = 2) or (objSession.LogonType = 10) then
 				Set colList = objWMI.ExecQuery("Associators of " _ 
 				& "{Win32_LogonSession.LogonId=" & objSession.LogonId & "} " _ 
@@ -96,16 +96,20 @@ Else
 					Else
 						sType = "Remote"
 					End If
-					Ech PadLeft(sFName, 19) & PadLeft(sDomain & "\" & sUName, 20) & PadLeft(sType, 14) & PadLeft(WMIDateStringToDate(sStart), 20)
+					sResult = sResult & vbtab & PadLeft(sFName, 19) & PadLeft(sDomain & "\" & sUName, 20) & PadLeft(sType, 14) & PadLeft(WMIDateStringToDate(sStart), 20)
+					sResult = sResult & vbCrLf
+					bFoundSomeone = true
 				End If
 			End If
 		Next 
 	End If 
-	
-	' ------------------------------------------------------------------
-
-
+	If bFoundSomeone then 
+		Ech sResult
+	Else
+		Ech "Error or No Sessions Found"
+	End If
 End If
+
 
 Sub Ech(sText)
 	Echo sText 
