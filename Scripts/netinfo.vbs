@@ -23,7 +23,7 @@ For Each oItem in colItems
 	End If
 Next
 
-Rem Configuration Values
+' Configuration Values
 blnShowCaption = True
 blnShowIPAddress = True
 blnShowIPv6 = False
@@ -34,59 +34,55 @@ blnShowSubnet = True
 blnShowDNSServerSearchOrder = True
 blnShowWINSPrimaryServer = True
 
-Rem Define query to get information - IPEnabled restricts the information to active Adaptors
+' Define query to get information - IPEnabled restricts the information to active Adaptors
 Set colItems = objWMIService.ExecQuery("Select * from Win32_NetworkAdapterConfiguration Where IPEnabled = TRUE")
 
 For x = 0 to UBound(cNet)
-Rem Get each adaptor from the table
-
-For Each objItem In colItems
-If objItem.MACAddress = cNet(x).MACAddress Then
-	Rem Get each IP address for the adaptor
-	For Each strIPAddress In objItem.IPAddress
-		Rem check to see if it is an IPv6 address and whether we want it
-		If strIPAddress = "0.0.0.0" Then
-		Else
-			If InStr(strIPAddress, ":") = 0 Or blnShowIPv6 Then
-				Rem Set up the correct adaptor name by stringing the first 12 characters and also the MAC address
-				strCaption = fnSubstring(objItem.Caption, 12, 1024) & " (" & objItem.MACAddress & ")"
-				Rem Format DHCP info if required
-				If objItem.DHCPEnabled and blnShowDHCP Then
-					If blnShowDHCPExpire Then
-						strDHCP = " (Expires: " & fnDisplayDate(objItem.DHCPLeaseExpires) & ")"
+	' Get each adaptor from the table
+	For Each objItem In colItems
+		If objItem.MACAddress = cNet(x).MACAddress Then
+			' Get each IP address for the adaptor
+			For Each strIPAddress In objItem.IPAddress
+				' check to see if it is an IPv6 address and whether we want it
+				If strIPAddress = "0.0.0.0" Then
+					' Don't do anything - it's a fake IP!
+				Else
+					If InStr(strIPAddress, ":") = 0 Or blnShowIPv6 Then
+						' Set up the correct adaptor name by stringing the first 12 characters and also the MAC address
+						strCaption = fnSubstring(objItem.Caption, 12, 1024) & " (" & objItem.MACAddress & ")"
+						' Format DHCP info if required
+						If objItem.DHCPEnabled and blnShowDHCP Then
+							If blnShowDHCPExpire Then
+								strDHCP = " (Expires: " & fnDisplayDate(objItem.DHCPLeaseExpires) & ")"
+							End If
+						Else
+							strDHCP = ""
+						End If
+						strIPSubnet = objItem.IPSubnet(0)
+						strIPSubnet = " / " & strIPSubnet
+						
+						If Left(cNet(x).IPFormated, 3) = "   " Then
+							cNet(x).IPFormated = cNet(x).IPFormated & vbTab & vbTab & vbTab & vbTab & strIPAddress & strIPSubnet & vbCrLf
+						Else
+							cNet(x).IPFormated = "       IP Address:" & vbTab & strIPAddress + strIPSubnet & vbCrLf
+						End If
+						If Not IsNull(objItem.DHCPServer) Then
+							cNet(x).IPFormated = cNet(x).IPFormated & vbTab & "       DHCP Server:" & vbTab & objItem.DHCPServer + strDHCP & vbCrLf
+						End If
 					End If
-				Else
-					strDHCP = ""
 				End If
-				strIPSubnet = objItem.IPSubnet(0)
-				strIPSubnet = " / " & strIPSubnet
-				
-				If Left(cNet(x).IPFormated, 3) = "   " Then
-					cNet(x).IPFormated = cNet(x).IPFormated & vbTab & vbTab & vbTab & vbTab & strIPAddress + strIPSubnet & vbCrLf
-				Else
-					cNet(x).IPFormated = "       IP Address:" & vbTab & strIPAddress + strIPSubnet & vbCrLf
-				End If
-				If Not IsNull(objItem.DHCPServer) Then
-					cNet(x).IPFormated = cNet(x).IPFormated & vbTab & "       DHCP Server:" & vbTab & objItem.DHCPServer + strDHCP & vbCrLf
-				End If
-				If Not IsNull(objItem.DefaultIPGateway) Then
-					cNet(x).IPFormated = cNet(x).IPFormated & vbTab & "       Gateway:" & vbTab & Join(objItem.DefaultIPGateway, ", ") & vbCrLf
-				End If
-
-				'Call fnDisplayValue(blnShowSubnet,objItem.IPSubnet(0),"  Subnet",3)
-				If Not IsNull(objItem.DNSServerSearchOrder) Then 
-					strDNSServerSearchOrder = Join(objItem.DNSServerSearchOrder, ", ")
-					cNet(x).IPFormated = cNet(x).IPFormated & vbTab & "       DNS Servers:" & vbTab & strDNSServerSearchOrder & vbCrLf
-				End If
-				strDNSServerSearchOrder = ""
+			Next
+			If Not IsNull(objItem.DefaultIPGateway) Then
+				cNet(x).IPFormated = cNet(x).IPFormated & vbTab & "       Gateway:" & vbTab & Join(objItem.DefaultIPGateway, ", ") & vbCrLf
+			End If	
+			If Not IsNull(objItem.DNSServerSearchOrder) Then 
+				strDNSServerSearchOrder = Join(objItem.DNSServerSearchOrder, ", ")
+				cNet(x).IPFormated = cNet(x).IPFormated & vbTab & "       DNS Servers:" & vbTab & strDNSServerSearchOrder & vbCrLf
 			End If
+			strDNSServerSearchOrder = ""
 		End If
 	Next
-End If
 Next
-Next
-'Rem print the end of script message
-'REM Echo strMessage
 
 sResult = ""
 
@@ -102,25 +98,25 @@ Next
 
 Echo sResult
 
-Rem End of Programme
+' End of Program
 
-Rem Procedures & Functions
+' Procedures & Functions
 
 Function fnDisplayValue(p_valueLogical, p_valueVar, p_valueDisplay, p_valueTab)
 Dim strVar, sReturnTxt
 
 If p_valueLogical Then
-	Rem if the value is an array the cycle through each value
+	' if the value is an array the cycle through each value
 	If IsArray(p_valueVar) Then
 		For Each strVar In p_valueVar
-			Rem if the value is a string then display it, otherwise ignore it 
+			' if the value is a string then display it, otherwise ignore it 
 			If VarType(strVar) = 8 Then
 				sReturnTxt = p_valueDisplay & String(p_valueTab," ") & strVar
 			End If      
 		Next
 	Else
 		strVar = p_valueVar
-		Rem if the value is a string then display it, otherwise ignore it 
+		' if the value is a string then display it, otherwise ignore it 
 			If VarType(strVar) = 8 Then
 				sReturnTxt = p_valueDisplay & String(p_valueTab," ") & strVar
 			End If      
@@ -133,10 +129,9 @@ If p_valueLogical Then
 	End If
 End Function
 
-Rem Function to pull the a substring out from a string
+' Function to pull the a substring out from a string
  
 Function fnSubstring(p_strData,p_intStart,p_intLength )
-
    Dim intLen
    intLen = Len(p_strdata)
 
