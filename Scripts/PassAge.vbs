@@ -4,30 +4,66 @@ On Error Resume Next
 ' https://community.spiceworks.com/scripts/show/1916-ldap-query-to-get-user-s-password-age
 
 Dim sUserName, sReturnedDN, sUserFullDN, iPasswordLastSet, iTimeDifference
-Dim wshNetwork, oRootDSE, iDomainMaxAge, sChangeInDays
+Dim wshNetwork, oRootDSE, iDomainMaxAge, sChangeInDays, oADSysInfo, bLocal
 
-Set oRootDSE = GetObject("LDAP://rootDSE")
+' Test if we're using a domain account and act accordingly...
+Set oADSysInfo = Createobject("ADSystemInfo")
+sUserName = oADSysInfo.UserName
+if Err <> 0 then
+    'Must be local
+    bLocal = True
+else
+    'Must be AD
+    bLocal = False
+end if
+Set oADSysInfo = Nothing
+err.Clear
 
 Set wshNetwork = CreateObject( "WScript.Network" )
 sUserName = wshNetwork.UserName
 
-sReturnedDN = SearchDistinguishedName(sUserName)
-Set sUserFullDN = GetObject("LDAP://" & sReturnedDN)
-
-iPasswordLastSet = sUserFullDN.PasswordLastChanged
-iTimeDifference = Int(Now - iPasswordLastSet)
-iDomainMaxAge = GetMaxPasswordAge
-If iDomainMaxAge = -1 Then
-    sChangeInDays = " (" & iTimeDifference & " days old)"
+If bLocal then
+    Echo GetLocalInfo
 Else
-    sChangeInDays = " (change in " & (iDomainMaxAge - iTimeDifference) & " days)"
+    Echo GetDomainInfo
 End If
-Echo FormatDateTime(iPasswordLastSet, vbShortDate) & sChangeInDays 
 
-Set oRootDSE = Nothing
-Set wshNetwork = Nothing
-Set sUserFullDN = Nothing
+Public Function GetLocalInfo()
+    Dim oUsr, seconds
+    Set oUsr = GetObject("WinNT://./" & sUserName & ",user")
 
+    Err.Clear
+    iPasswordLastSet = oUsr.PasswordAge
+    iPasswordLastSet = DateAdd("s", (-1 * iPasswordLastSet), Now())
+    If Err <> 0 then
+            iPasswordLastSet = "Error getting date"
+    End If
+    sChangeInDays = ""
+
+    GetLocalInfo = FormatDateTime(iPasswordLastSet, vbShortDate) & sChangeInDays
+End Function
+
+Public Function GetDomainInfo
+    Set oRootDSE = GetObject("LDAP://rootDSE")
+
+    sReturnedDN = SearchDistinguishedName(sUserName)
+    Set sUserFullDN = GetObject("LDAP://" & sReturnedDN)
+
+    iPasswordLastSet = sUserFullDN.PasswordLastChanged
+    iTimeDifference = Int(Now - iPasswordLastSet)
+    iDomainMaxAge = GetMaxPasswordAge
+    If iDomainMaxAge = -1 Then
+        sChangeInDays = " (" & iTimeDifference & " days old)"
+    Else
+        sChangeInDays = " (change in " & (iDomainMaxAge - iTimeDifference) & " days)"
+    End If
+
+    Set oRootDSE = Nothing
+    Set wshNetwork = Nothing
+    Set sUserFullDN = Nothing
+
+    GetDomainInfo = FormatDateTime(iPasswordLastSet, vbShortDate) & sChangeInDays
+End Function
 
 Public Function SearchDistinguishedName(ByVal sAccountName)
     ' Function:     SearchDistinguishedName
@@ -63,7 +99,7 @@ Function GetMaxPasswordAge()
 
     maximumPasswordAge = int(Int8ToSec(oDomain.get("maxPwdAge")) / 86400) 'convert to days
 
-    If IsNumeric(maximumPasswordAge) Then 
+    If IsNumeric(maximumPasswordAge) Then
         GetMaxPasswordAge = maximumPasswordAge
     Else
         GetMaxPasswordAge = -1
