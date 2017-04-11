@@ -1,13 +1,13 @@
 Option Explicit
 on error resume next
 
-Dim sScriptIs, sAppToRun, sRetVal, sTxtArray, i, out, bDidHeading
+Dim sScriptIs, sAppToRun, sRetVal, sTxtArray, i, out, bBlank, bDidHeading
 
 'Define our PowerShell Script and Command Line
-sScriptIs = "c:\bginfo\scripts\PowerShell\Get-SQLVersion.ps1"
+sScriptIs = "c:\bginfo\scripts\PowerShell\Get-IISBindings.ps1"
 sAppToRun = "%SystemRoot%\sysnative\WindowsPowerShell\v1.0\powershell.exe -InputFormat None -NoProfile -NoLogo -WindowStyle Hidden -ExecutionPolicy Unrestricted -file " & sScriptIs
 
-'Run that script and capture the output
+'Run that command line and capture the output
 sRetVal = Run(sAppToRun)
 
 'Format the output
@@ -15,24 +15,22 @@ sTxtArray = Split(sRetVal, vbCrLf)
 for i = 0 to ubound(sTxtArray)
 	'Initialize our output each time
 	out = ""
-	if len(trim(sTxtArray(i))) > 15 then
-		''All other lines, trim the first 15 characters (headings) if there are 15 characters
-		if left(Trim(sTxtArray(i)), Len("Instance")) = "Instance" then
-			out = Trim(Right(sTxtArray(i), (len(sTxtArray(i)) - 15)))
-			if not bDidHeading then
-				out = "SQL Instances: " & vbTab & Trim(out)
-				bDidHeading = True
-			end if
-		else
-			if Instr(sTxtArray(i), "Not a Cluster Resource" ) > 0 then
-				out = ""
-			else
-				out = vbtab & Trim(Right(sTxtArray(i), (len(sTxtArray(i)) - 15)))
-			end if
-		end if
+	if left(sTxtArray(i), 3) = "   " then
+		'Check for a line without a heading (additional bindings) and indent it
+		out = vbtab & trim(sTxtArray(i))
+	elseif left(sTxtArray(i), 4) = "Bind" then
+		'Check for the first line with the Binding heading and indent it
+		out = vbtab & Trim(Right(sTxtArray(i), (len(sTxtArray(i)) - 10)))
+	elseif len(sTxtArray(i)) > 10 then
+		'All other lines, trim the first 10 characters (headings) if there are 10 characters
+		out = Trim(Right(sTxtArray(i), (len(sTxtArray(i)) - 10)))
 	end if
 	if len(trim(out)) > 0 then
-		'Now, output only non-blank lines
+		'Now, output only non-blank lines, and attach the IIS Sites heading to the first line only
+		if not bDidHeading then
+			out = "IIS Sites: " & vbTab & Trim(out)
+			bDidHeading = True
+		end if
 		echo Trim(out)
 	End If
 next

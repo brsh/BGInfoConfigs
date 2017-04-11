@@ -11,17 +11,18 @@ if (test-path "HKLM:\SOFTWARE\Microsoft\Microsoft SQL Server\Instance Names\SQL"
 	# Now, cycle through all the Value NAMES to find specific instance information
 	$values | ForEach-Object {
 		# The Actual Value NAME
-		$value = $_
+		[string] $InstanceName = $_
 		# The Value VALUE
-		$inst = $regKey.GetValue($value)
+		[string] $inst = $regKey.GetValue($InstanceName)
 		# Build the path the to the Instance in the registry
 		$path = "SOFTWARE\\Microsoft\\Microsoft SQL Server\\" + $inst
 		# Get the Version info
-		$version = $reg.OpenSubKey($path + "\\MSSQLServer\\" + "CurrentVersion").GetValue("CurrentVersion")
+		[string] $Version = $reg.OpenSubKey($path + "\\MSSQLServer\\" + "CurrentVersion").GetValue("CurrentVersion")
 		# Make an attempt for Cluster Information
 		try {
 			[bool] $IsCluster = $true
-			$ClusterName = ""
+			[string] $ClusterName = ""
+			[string] $ClusterOwner = ""
 			$ClusterName = $reg.OpenSubKey($path + "\\Cluster").GetValue("ClusterName")
 			try {
 				$ClusterOwner = (Get-WmiObject -Namespace "root\mscluster" -Class MSCluster_Resource |
@@ -29,17 +30,62 @@ if (test-path "HKLM:\SOFTWARE\Microsoft\Microsoft SQL Server\Instance Names\SQL"
 					Select-Object OwnerNode -First 1).OwnerNode
 			} catch { $ClusterOwner = ""}
 		} catch { [bool] $IsCluster = $false }
+		if ($IsCluster -and ($ClusterName.Length -gt 0)) {
+			$FinalInstanceName = "$ClusterName\$InstanceName"
+		}
+		else {
+			$FinalInstanceName = "$InstanceName"
+		}
+		try {
+			$ServiceStatus = [string] (get-service | Where-Object { $_.DisplayName -eq "SQL Server `($($InstanceName)`)"}).Status
+			if ($ServiceStatus.Length -gt 0) {
+				$ServiceStatus = "`($($ServiceStatus)`)"
+			} else { $ServiceStatus = "" }
+		}
+		Catch { $ServiceStatus = "" }
+		# Try to get the Error Log, so we can read more definite version information
+		# The Error log location is 1 of the "switches" used to start sqlserver
+		# We pull the switches from the registry, find the error log, and read the header
+		# Otherwise, we just use the version held in the registry - which is not quite as accurate
+		Try {
+			$SQLArgsKey = $reg.OpenSubKey($path + "\\MSSQLServer\\" + "Parameters")
+			$SQLArgs = $SQLArgsKey.GetValueNames()
+			$SQLArgs | ForEach-Object {
+				[string] $ParamName = $_
+				[String] $Param = $SQLArgsKey.GetValue($ParamName)
+				if ($Param -match "ERRORLOG") { [String] $PathToErrorLog = $Param.Replace('-e', '') }
+			}
+			if ($PathToErrorLog.Length -gt 0) {
+				try {
+					if (Test-Path $PathToErrorLog -ErrorAction SilentlyContinue) {
+						Get-Content $PathToErrorLog -TotalCount 5 | ForEach-Object {
+							if ($_ -match "Microsoft SQL") { $FullVersion = $_.Substring($_.IndexOf('SQL')).Trim().Replace(' (X64)', '').Replace(' - ', ', ').Replace(" Server","") }
+							if ($_ -match 'on Windows') { $Edition = $_.SubString(0, $_.IndexOf('on Windows')).Trim().Replace(' (64-bit)', '').Replace(" Edition","") }
+						}
+					}
+				} catch { $FullVersion = ""; $Edition = ""}
+
+			}
+			if ($FullVersion.Length -gt 0) {
+				$FinalVersion = $FullVersion
+				if ($Edition.Length -gt 0) {
+					$FinalVersion = "$Edition, $FullVersion"
+				}
+			} else { $FinalVersion = "v$Version" }
+		} Catch { $FinalVersion = "v$Version" }
+
 		# Create a new object to hold this info, and add our custom info
 		$out = new-object psobject
-		Add-member -InputObject $out -MemberType NoteProperty -Name "SQLInstanceName" -value $value
-		Add-member -InputObject $out -MemberType NoteProperty -Name "Version" -value $version
+		Add-member -InputObject $out -MemberType NoteProperty -Name "InstanceName" -value ("$FinalInstanceName $ServiceStatus")
+		Add-Member -InputObject $out -MemberType NoteProperty -Name "Version" -value ("$FinalVersion")
 		if ($IsCluster) {
-			Add-member -InputObject $out -MemberType NoteProperty -Name "ClusterName" -value $ClusterName
-			Add-member -InputObject $out -MemberType NoteProperty -Name "OwningNode" -value $ClusterOwner
+			Add-Member -InputObject $out -MemberType NoteProperty -Name "OwningNode" -value ("Resource is owned by $ClusterOwner")
 		}
-		# Add it to the array
+		else {
+			Add-Member -InputObject $out -MemberType NoteProperty -Name "OwningNode" -value ("Not a Cluster Resource")
+		}
 		$all += $out
 	}
 	# Output all the objects in a nice table (as text)
-	$all | Format-Table -AutoSize
+	$all | format-list
 }
