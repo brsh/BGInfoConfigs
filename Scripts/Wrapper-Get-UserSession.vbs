@@ -48,9 +48,8 @@ Next
 if not bBlank then
 	'We hard set bBlank to True early on - setting it to false only if nothing is found
 	'If it's not blank, we output the text...
-	echo Trim(out)
+	echo Trim(out) & vbCrLf
 End If
-
 
 Function Run(sCLI)
 	'Here we execute the command specified
@@ -64,9 +63,7 @@ Function Run(sCLI)
 	'and wait for it to exit
 	do until oApp.status = 1
 		'Sleep for 1 second (vbs in bginfo has no wscript.sleep function)
-		dteWait = DateAdd("s", 1, Now())
-		Do Until (Now() > dteWait)
-		Loop
+		wShell.Run "%COMSPEC% /c ping -n 1 127.0.0.1>nul",0,1
 	Loop
 	Run = oApp.StdOut.ReadAll
 End Function

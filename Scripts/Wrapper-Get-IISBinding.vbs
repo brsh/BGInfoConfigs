@@ -35,6 +35,10 @@ for i = 0 to ubound(sTxtArray)
 	End If
 next
 
+'Add a blank line at the end ... if we displayed any info
+if bDidHeading Then echo vbCrLf
+
+
 Function Run(sCLI)
 	'Here we execute the command specified
 	Dim oApp, wShell, dteWait
@@ -47,9 +51,7 @@ Function Run(sCLI)
 	'and wait for it to exit
 	do until oApp.status = 1
 		'Sleep for 1 second (vbs in bginfo has no wscript.sleep function)
-		dteWait = DateAdd("s", 1, Now())
-		Do Until (Now() > dteWait)
-		Loop
+		wShell.Run "%COMSPEC% /c ping -n 1 127.0.0.1>nul",0,1
 	Loop
 	Run = oApp.StdOut.ReadAll
 End Function

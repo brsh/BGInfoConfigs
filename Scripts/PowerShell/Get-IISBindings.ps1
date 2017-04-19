@@ -7,12 +7,12 @@ if (get-module -ListAvailable | Where-Object { $_.Name -eq 'WebAdministration'})
 			$out = New-Object psobject
 			Add-member -InputObject $out -MemberType NoteProperty -Name "Site" -value "$($_.Name) `($($_.PhysicalPath.ToString().Replace('\Empty', ''))`)"
 			[string] $bindings = ""
-			$_.Bindings.Collection | where-object { $_.Protocol -match "http" } | foreach-object { $bindings += "$($_.Protocol)/$($_.BindingInformation.ToString().Trim(":"))`n" }
+			$_.Bindings.Collection | where-object { ($_.Protocol -match "http") -or ($_.Protocol -match "ftp") } | foreach-object { $bindings += "$($_.Protocol)/$($_.BindingInformation.ToString().Trim(":"))`n" }
 			$bindings = $bindings.Trim("`n")
 			Add-member -InputObject $out -MemberType NoteProperty -Name "Bindings" -value $bindings
 			$all += $out
 		}
-		$all | fl
+		$all | Format-List
 	} Catch {
 		# No sites Found
 	}
