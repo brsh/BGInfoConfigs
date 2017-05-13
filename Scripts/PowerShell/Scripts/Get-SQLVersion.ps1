@@ -31,15 +31,14 @@ if (test-path "HKLM:\SOFTWARE\Microsoft\Microsoft SQL Server") {
 			# The Value VALUE
 			try {
 				[string] $inst = $regKey.GetValue($InstanceName)
-			}
-			catch { $inst = $InstanceName}
+				if ($inst.length -eq 0) { $inst = $InstanceName }
+			} catch { $inst = $InstanceName}
 			# Build the path the to the Instance in the registry
 			$path = "SOFTWARE\\Microsoft\\Microsoft SQL Server\\" + $inst
 			# Get the Version info
 			try {
 				[string] $Version = $reg.OpenSubKey($path + "\\MSSQLServer\\" + "CurrentVersion").GetValue("CurrentVersion")
-			}
-			catch { [string] $Version = 'Unknown' }
+			} catch { [string] $Version = 'Unknown' }
 			# Make an attempt for Cluster Information
 			try {
 				[bool] $IsCluster = $true
@@ -63,8 +62,7 @@ if (test-path "HKLM:\SOFTWARE\Microsoft\Microsoft SQL Server") {
 				if ($ServiceStatus.Length -gt 0) {
 					$ServiceStatus = "`($($ServiceStatus)`)"
 				} else { $ServiceStatus = "" }
-			}
-			Catch { $ServiceStatus = "" }
+			} catch { $ServiceStatus = "" }
 			# Try to get the Error Log, so we can read more definite version information
 			# The Error log location is 1 of the "switches" used to start sqlserver
 			# We pull the switches from the registry, find the error log, and read the header
@@ -94,7 +92,7 @@ if (test-path "HKLM:\SOFTWARE\Microsoft\Microsoft SQL Server") {
 						$FinalVersion = "$Edition, $FullVersion"
 					}
 				} else { $FinalVersion = "v$Version" }
-			} Catch { $FinalVersion = "v$Version" }
+			} catch { $FinalVersion = $Version }
 
 			# Create a new object to hold this info, and add our custom info
 			$out = new-object psobject

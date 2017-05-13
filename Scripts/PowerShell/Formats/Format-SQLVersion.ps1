@@ -33,7 +33,7 @@
         if ($i -gt 0 ) { $header = $tab -replace '.$' }
         $i = 99
         Write-Host "${Header}$InstanceName"
-        Write-Host "${tab}$Version"
+        if ($Version) { Write-Host "${tab}$Version" }
         if ($OwningNode -ne 'Not a Cluster Resource') {
             Write-Host "${tab}$OwningNode"
         }
