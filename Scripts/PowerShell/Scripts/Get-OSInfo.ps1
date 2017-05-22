@@ -35,15 +35,14 @@ Try {
     [string] $Comment = $OS.Description
     [string] $LogonServer = $env:LOGONSERVER.ToString().Replace("\", "")
 
-    if ($USER) {
         Switch ($User.ContextType) {
             "Machine"               { [string] $UserContext = "Local"; break }
             "Domain"                { [string] $UserContext = "Domain"; break }
             "\\MicrosoftAccount"    { [string] $UserContext = "Microsoft"; break }
             Default                 { [string] $UserContext = "Unknown"; break }
         }
-        $PwdLastSet = $User.LastPasswordSet
-    }
+    [datetime] $PwdLastSet = [datetime] "1/1/1971"
+    if ($USER) { $PwdLastSet = $User.LastPasswordSet }
 
     Add-Member -InputObject $out -MemberType NoteProperty -Name "UserName" -Value $UserName
     Add-Member -InputObject $out -MemberType NoteProperty -Name "HostName" -Value $HostName

@@ -94,16 +94,19 @@ function Format-OSInfo {
             Write-Host "${Comment}"
         }
         Write-Host "UserName:${tab}" -NoNewline
-        Write-Host "${UserName}   (${UserContext} User)"
+        Write-Host "${UserName}   " -NoNewline
+        if ($UserContext -ne 'Unknown') { Write-Host "(${UserContext} User)" } else { Write-Host "" }
         if ($UserContext -eq "Domain") {
             Write-Host "Logon Server:${tab}" -NoNewline
             Write-Host "${LogonServer}"
         }
-        Write-Host "Password Set:${tab}" -NoNewline
-        if ($MaxPwdAge -gt -1) {
-            [timespan] $InDays = $PasswordExpires - $(get-date)
-            Write-Host "$(${PasswordLastSet}.ToShortDateString())  (expires in $(${InDays}.Days) days)"
-        } else { Write-Host "$(${PasswordLastSet}.ToShortDateString())" }
+        if ($PasswordLastSet -ne ([datetime] '1/1/1971')) {
+            Write-Host "Password Set:${tab}" -NoNewline
+            if ($MaxPwdAge -gt -1) {
+                [timespan] $InDays = $PasswordExpires - $(get-date)
+                Write-Host "$(${PasswordLastSet}.ToShortDateString())  (expires in $(${InDays}.Days) days)"
+            } else { Write-Host "$(${PasswordLastSet}.ToShortDateString())" }
+        }
 
 		Write-Host ""
 
