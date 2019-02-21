@@ -19,7 +19,7 @@ param ( )
 
 BEGIN {
 	try {
-		Invoke-WebRequest '169.254.169.254/latest/meta-data' -erroraction Stop | Out-Null
+		Invoke-WebRequest '169.254.169.254/latest/meta-data' -erroraction Stop -TimeoutSec 5 | Out-Null
 	} catch {
 		write-verbose "Could not connect to local AWS instance metadata. Prolly not an AWS Instance"
 		exit

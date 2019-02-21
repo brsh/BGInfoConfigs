@@ -1,8 +1,8 @@
 #Test that the Servermanager module is available
-if (Get-Module -ListAvailable | Where-Object { $_.Name -eq 'ServerManager'}) {
+try {
+	Import-Module -Name ServerManager -Force -ErrorAction Stop -Verbose:$false
 	#Pull in all the installed "top level" roles
 	try {
-		Import-Module ServerManager -ErrorAction Stop -Verbose:$false
 		$roles = Get-WindowsFeature -ErrorAction Stop -Verbose:$false | Where-Object { $_.Installed } | Where-Object { $_.Path -notmatch '\\' }
 
 		#Create the array to hold the objects
@@ -21,11 +21,11 @@ if (Get-Module -ListAvailable | Where-Object { $_.Name -eq 'ServerManager'}) {
 				$NickName = $Abbrev
 				if ($SubItem.ToString().Length -gt 0) { $NickName = "$Abbrev ($SubItem)" }
 				$all += New-Object -Type psobject -Property @{
-					Role = $_.DisplayName
-					FeatureName = $_.Name
+					Role         = $_.DisplayName
+					FeatureName  = $_.Name
 					Abbreviation = $Abbrev
-					SubItem = $SubItem
-					Qualified = $NickName
+					SubItem      = $SubItem
+					Qualified    = $NickName
 				}
 			}
 			if ( $_.DisplayName -eq 'Active Directory Domain Services') {
@@ -38,11 +38,11 @@ if (Get-Module -ListAvailable | Where-Object { $_.Name -eq 'ServerManager'}) {
 				$NickName = $Abbrev
 				if ($SubItem.ToString().Length -gt 0) { $NickName = "$Abbrev ($SubItem)" }
 				$all += New-Object -Type psobject -Property @{
-					Role = $_.DisplayName
-					FeatureName = $_.Name
+					Role         = $_.DisplayName
+					FeatureName  = $_.Name
 					Abbreviation = $Abbrev
-					SubItem = $SubItem
-					Qualified = $NickName
+					SubItem      = $SubItem
+					Qualified    = $NickName
 				}
 			}
 			if ( $_.DisplayName -eq 'Active Directory Federation Services') {
@@ -63,11 +63,11 @@ if (Get-Module -ListAvailable | Where-Object { $_.Name -eq 'ServerManager'}) {
 				$NickName = $Abbrev
 				if ($SubItem.ToString().Length -gt 0) { $NickName = $SubItem } else { $NickName = $Abbrev }
 				$all += New-Object -Type psobject -Property @{
-					Role = $_.DisplayName
-					FeatureName = $_.Name
+					Role         = $_.DisplayName
+					FeatureName  = $_.Name
 					Abbreviation = $Abbrev
-					SubItem = $SubItem
-					Qualified = $NickName
+					SubItem      = $SubItem
+					Qualified    = $NickName
 				}
 			}
 			if ( $_.DisplayName -eq 'DHCP Server') {
@@ -75,11 +75,11 @@ if (Get-Module -ListAvailable | Where-Object { $_.Name -eq 'ServerManager'}) {
 				$Abbrev = "DHCP"
 				$NickName = $Abbrev
 				$all += New-Object -Type psobject -Property @{
-					Role = $_.DisplayName
-					FeatureName = $_.Name
+					Role         = $_.DisplayName
+					FeatureName  = $_.Name
 					Abbreviation = $Abbrev
-					SubItem = $SubItem
-					Qualified = $NickName
+					SubItem      = $SubItem
+					Qualified    = $NickName
 				}
 			}
 			if ( $_.DisplayName -eq 'DNS Server') {
@@ -93,11 +93,11 @@ if (Get-Module -ListAvailable | Where-Object { $_.Name -eq 'ServerManager'}) {
 				$NickName = $Abbrev
 				if ($SubItem.ToString().Length -gt 0) { $NickName = "$Abbrev ($SubItem)" }
 				$all += New-Object -Type psobject -Property @{
-					Role = $_.DisplayName
-					FeatureName = $_.Name
+					Role         = $_.DisplayName
+					FeatureName  = $_.Name
 					Abbreviation = $Abbrev
-					SubItem = $SubItem
-					Qualified = $NickName
+					SubItem      = $SubItem
+					Qualified    = $NickName
 				}
 			}
 			if ( $_.DisplayName -eq 'Remote Desktop Services') {
@@ -105,11 +105,11 @@ if (Get-Module -ListAvailable | Where-Object { $_.Name -eq 'ServerManager'}) {
 				$Abbrev = "RDP"
 				$NickName = $Abbrev
 				$all += New-Object -Type psobject -Property @{
-					Role = $_.DisplayName
-					FeatureName = $_.Name
+					Role         = $_.DisplayName
+					FeatureName  = $_.Name
 					Abbreviation = $Abbrev
-					SubItem = $SubItem
-					Qualified = $NickName
+					SubItem      = $SubItem
+					Qualified    = $NickName
 				}
 			}
 			if ( $_.DisplayName -eq 'Web Server (IIS)') {
@@ -124,11 +124,11 @@ if (Get-Module -ListAvailable | Where-Object { $_.Name -eq 'ServerManager'}) {
 				$NickName = $Abbrev
 				if ($SubItem.ToString().Length -gt 0) { $NickName = "$Abbrev ($SubItem)" }
 				$all += New-Object -Type psobject -Property @{
-					Role = $_.DisplayName
-					FeatureName = $_.Name
+					Role         = $_.DisplayName
+					FeatureName  = $_.Name
 					Abbreviation = $Abbrev
-					SubItem = $SubItem
-					Qualified = $NickName
+					SubItem      = $SubItem
+					Qualified    = $NickName
 				}
 			}
 			if ( $_.DisplayName -eq 'Windows Server Update Services') {
@@ -144,11 +144,11 @@ if (Get-Module -ListAvailable | Where-Object { $_.Name -eq 'ServerManager'}) {
 				$NickName = $Abbrev
 				if ($SubItem.ToString().Length -gt 0) { $NickName = "$Abbrev ($SubItem)" }
 				$all += New-Object -Type psobject -Property @{
-					Role = $_.DisplayName
-					FeatureName = $_.Name
+					Role         = $_.DisplayName
+					FeatureName  = $_.Name
 					Abbreviation = $Abbrev
-					SubItem = $SubItem
-					Qualified = $NickName
+					SubItem      = $SubItem
+					Qualified    = $NickName
 				}
 			}
 			if ( $_.DisplayName -eq 'SMTP Server') {
@@ -156,11 +156,11 @@ if (Get-Module -ListAvailable | Where-Object { $_.Name -eq 'ServerManager'}) {
 				$Abbrev = "SMTP"
 				$NickName = $Abbrev
 				$all += New-Object -Type psobject -Property @{
-					Role = $_.DisplayName
-					FeatureName = $_.Name
+					Role         = $_.DisplayName
+					FeatureName  = $_.Name
 					Abbreviation = $Abbrev
-					SubItem = $SubItem
-					Qualified = $NickName
+					SubItem      = $SubItem
+					Qualified    = $NickName
 				}
 			}
 			if ( $_.DisplayName -eq 'Windows Internal Database') {
@@ -168,11 +168,11 @@ if (Get-Module -ListAvailable | Where-Object { $_.Name -eq 'ServerManager'}) {
 				$Abbrev = "WID"
 				$NickName = $Abbrev
 				$all += New-Object -Type psobject -Property @{
-					Role = $_.DisplayName
-					FeatureName = $_.Name
+					Role         = $_.DisplayName
+					FeatureName  = $_.Name
 					Abbreviation = $Abbrev
-					SubItem = $SubItem
-					Qualified = $NickName
+					SubItem      = $SubItem
+					Qualified    = $NickName
 				}
 			}
 			if ( $_.DisplayName -eq 'Failover Clustering') {
@@ -186,11 +186,11 @@ if (Get-Module -ListAvailable | Where-Object { $_.Name -eq 'ServerManager'}) {
 				$NickName = $Abbrev
 				if ($SubItem.ToString().Length -gt 0) { $NickName = "$Abbrev ($SubItem)" }
 				$all += New-Object -Type psobject -Property @{
-					Role = $_.DisplayName
-					FeatureName = $_.Name
+					Role         = $_.DisplayName
+					FeatureName  = $_.Name
 					Abbreviation = $Abbrev
-					SubItem = $SubItem
-					Qualified = $NickName
+					SubItem      = $SubItem
+					Qualified    = $NickName
 				}
 			}
 			if ( $_.DisplayName -eq 'Containers') {
@@ -198,11 +198,11 @@ if (Get-Module -ListAvailable | Where-Object { $_.Name -eq 'ServerManager'}) {
 				$Abbrev = "Containers"
 				$NickName = $Abbrev
 				$all += New-Object -Type psobject -Property @{
-					Role = $_.DisplayName
-					FeatureName = $_.Name
+					Role         = $_.DisplayName
+					FeatureName  = $_.Name
 					Abbreviation = $Abbrev
-					SubItem = $SubItem
-					Qualified = $NickName
+					SubItem      = $SubItem
+					Qualified    = $NickName
 				}
 			}
 		}
@@ -211,8 +211,8 @@ if (Get-Module -ListAvailable | Where-Object { $_.Name -eq 'ServerManager'}) {
 			#Test For ADFS 2.0 (not show in the Roles/Features of 2008 R2 [native is 1.1])
 			#We won't do this if we found ADFS in the roles...
 			if (Get-PSSnapin -Registered -ErrorAction SilentlyContinue -Verbose:$false | Where-Object {$_.Name -match "Adfs" }) {
-					#ADFS snappin is installed
-					#Let's see if we tell if we're Federation or Proxy (or both)
+				#ADFS snappin is installed
+				#Let's see if we tell if we're Federation or Proxy (or both)
 				Try {
 					Add-PSSnapin Microsoft.Adfs.PowerShell -ErrorAction Stop -Verbose:$false
 					Try {
@@ -230,17 +230,22 @@ if (Get-Module -ListAvailable | Where-Object { $_.Name -eq 'ServerManager'}) {
 					$Abbrev = "ADFS"
 					if ($SubItem.ToString().Length -gt 0) { $NickName = $SubItem } else { $NickName = $Abbrev }
 					$all += New-Object -Type psobject -Property @{
-						Role = "Active Directory Federation Services"
-						FeatureName = ""
+						Role         = "Active Directory Federation Services"
+						FeatureName  = ""
 						Abbreviation = $Abbrev
-						SubItem = $SubItem
-						Qualified = $NickName
+						SubItem      = $SubItem
+						Qualified    = $NickName
 					}
 				} catch { }
 			}
 		}
-	$all = $all | Sort-Object -Property Abbreviation
-	$all | Select-Object Role, FeatureName, Abbreviation, SubItem, Qualified
+		$all = $all | Sort-Object -Property Abbreviation
+		$all | Select-Object Role, FeatureName, Abbreviation, SubItem, Qualified
+	} Catch {
+		Write-Verbose 'Could not pull roles with Get-WindowsFeature'
+		Write-Verbose $_.Exception.Message
 	}
-	Catch { }
+} catch {
+	Write-Verbose 'Could not import module ServerManager'
+	Write-Verbose $_.Exception.Message
 }
