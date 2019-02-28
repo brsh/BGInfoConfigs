@@ -19,9 +19,16 @@ param ( )
 
 BEGIN {
 	try {
-		Invoke-WebRequest '169.254.169.254/latest/meta-data' -erroraction Stop -TimeoutSec 5 | Out-Null
+		$ping = New-Object System.Net.NetworkInformation.Ping
+		$result = $ping.Send('169.254.169.254')
+		if ($result) {
+			write-verbose "Ping'd local AWS instance metadata. Prolly an AWS Instance"
+		} else {
+			write-verbose "Could not ping local AWS instance metadata. Prolly not an AWS Instance"
+			exit
+		}
 	} catch {
-		write-verbose "Could not connect to local AWS instance metadata. Prolly not an AWS Instance"
+		write-verbose "Error ping'ing local AWS instance metadata. Prolly not an AWS Instance"
 		exit
 	}
 }
