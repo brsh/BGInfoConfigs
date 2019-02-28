@@ -21,7 +21,7 @@ BEGIN {
 	try {
 		$ping = New-Object System.Net.NetworkInformation.Ping
 		$result = $ping.Send('169.254.169.254')
-		if ($result) {
+		if ($result.status -eq 'success') {
 			write-verbose "Ping'd local AWS instance metadata. Prolly an AWS Instance"
 		} else {
 			write-verbose "Could not ping local AWS instance metadata. Prolly not an AWS Instance"
