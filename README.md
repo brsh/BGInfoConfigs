@@ -1,5 +1,7 @@
 BGInfo Config and Scripts
 
+Note: A lot of this code has been subsumed into https://github.com/brsh/brshSysInfo
+
 BGInfo is fantastic. The only problem with it is that it seems to be abandoned :(
 
 In a nutshell: for Windows systems, BGInfo will print any information on your desktop wallpaper. 
