@@ -1,11 +1,18 @@
+[CmdletBinding()]
+param ()
+
 # Test for query.exe, and do nothing if it's not there
-if (get-command query.exe -ErrorAction silentlycontinue) {
+if (get-command c:\windows\system32\query.exe -ErrorAction silentlycontinue) {
 	# Run the 'query user' command and catch the output
 	Try {
-		$quserOut = (query.exe user 2>&1)
+		$quserOut = (c:\windows\system32\query.exe user 2>&1)
 		if ($quserOut -match "No user exists") { exit }
 		if ($quserOut.Count -lt 2 ) { exit }
-	} Catch { exit }
+	} Catch {
+		Write-Verbose 'Error running c:\windows\system32\query.exe'
+		Write-Verbose $_.Exception.Message
+		exit
+	}
 
 	# Create our holder variable
 	$out = @()
@@ -16,7 +23,7 @@ if (get-command query.exe -ErrorAction silentlycontinue) {
 	#Now run thru each item to format the data
 	for ($i = 0; $i -lt $users.count; $i++) {
 		# Sometimes, there is no session info, so we have to bump data down a slot
-		if ($users[$i].Session -match '^\d+$') 	{
+		if ($users[$i].Session -match '^\d+$') {
 			$users[$i].logonTime = $users[$i].idleTime
 			$users[$i].idleTime = $users[$i].STATE
 			$users[$i].STATE = $users[$i].ID
@@ -30,8 +37,7 @@ if (get-command query.exe -ErrorAction silentlycontinue) {
 		# query user also includes idle time for active users... and it's usually incorrect
 		if ($users[$i].State -match 'Active') {
 			$users[$i].idleTime = "0:0"
-		}
-		else {
+		} else {
 			# Set the idletime to a format we can use as a TimeSpan
 			$idleString = $users[$i].idleTime
 			if ($idleString -eq '.') { $users[$i].idleTime = 0 }
@@ -46,13 +52,15 @@ if (get-command query.exe -ErrorAction silentlycontinue) {
 		}
 		# and make the dates human readable
 		$t = [timespan]$users[$i].idleTime
-		$users[$i].idleTime =  [string]::Format("{0:0}d {1:00}h {2:00}m", $t.Days, $t.Hours, $t.Minutes);
+		$users[$i].idleTime = [string]::Format("{0:0}d {1:00}h {2:00}m", $t.Days, $t.Hours, $t.Minutes);
 		$users[$i].logonTime = ([datetime]$users[$i].logonTime).ToString('dd-MMM-yyyy  HH:mmt')
 	}
 	#Sort by user name
-	$users = $users | Sort-Object -Property UserName,IdleTime
+	$users = $users | Sort-Object -Property UserName, IdleTime
 	#Force the fields we want (i.e., no ID field)
-	$out += $users | Select-Object UserName,Session,State,IdleTime,LogonTime
+	$out += $users | Select-Object UserName, Session, State, IdleTime, LogonTime
 	#And output the result
 	$out
+} else {
+	Write-Verbose 'Weird... could not get-command against c:\windows\system32\query.exe'
 }

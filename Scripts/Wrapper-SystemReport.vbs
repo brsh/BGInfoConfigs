@@ -5,7 +5,7 @@ Dim wShell, sScriptIs, sAppToRun, sRetVal, sTxtArray, i, out, bBlank, sTemp, Bit
 
 Set wShell = CreateObject("wscript.shell")
 
-'Define our PowerShell Script and Command Line
+'Define our PowerShell Script and Command Line - you'll want to adjust this if the path is diff
 sScriptIs = "c:\bginfo\scripts\PowerShell\Get-SystemReport.ps1"
 
 Bitness = GetBitness
@@ -16,6 +16,10 @@ else
 end if
 
 sAppToRun = sPSPath & "WindowsPowerShell\v1.0\powershell.exe -InputFormat None -NoProfile -NoLogo -WindowStyle Hidden -ExecutionPolicy Bypass -file " & sScriptIs & " -BGInfo"
+
+'This version disables/bypasses the execution policy - even if it can't be bypassed :)
+'Use this... um... if you need.. but .. um... well.. um... gotta go!
+'sAppToRun = sPSPath & "WindowsPowerShell\v1.0\powershell.exe -NoProfile -NoLogo -WindowStyle Hidden -ExecutionPolicy Bypass -command " & chr(34) & " & {($ctx = $ExecutionContext.GetType().GetField('_context', 'nonpublic,instance').GetValue( $executioncontext)).GetType().GetField('_authorizationManager', 'nonpublic,instance').SetValue($ctx, (New-Object System.Management.Automation.AuthorizationManager 'Microsoft.PowerShell')); " & sScriptIs & " -BGInfo }" & chr(34)
 
 'Run that command line and capture the output
 sRetVal = Run(sAppToRun)

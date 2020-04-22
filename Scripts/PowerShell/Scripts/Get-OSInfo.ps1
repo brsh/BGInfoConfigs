@@ -34,8 +34,12 @@ Try {
 	if ($UserName.Length -eq 0) { $UserName = "$env:USERDOMAIN\$env:USERNAME" }
 	[string] $HostName = $SYS.Name
 	[string] $HostDomain = ([string] $SYS.Domain).ToLower()
-	[string] $HostDomainNBT = (net config workstation) -match 'Workstation domain\s+\S+$' -replace '.+?(\S+)$', '$1'
-	[string] $Comment = $OS.Description
+	try {
+		[string] $HostDomainNBT = ''
+		$HostDomainNBT = (c:\windows\system32\net.exe config workstation) -match 'Workstation domain\s+\S+$' -replace '.+?(\S+)$', '$1'
+	} catch {
+		write-verbose 'Could not load/find c:\windows\system32\net.exe'
+	}	[string] $Comment = $OS.Description
 	[string] $LogonServer = $env:LOGONSERVER.ToString().Replace("\", "")
 
 	Switch ($User.ContextType) {
@@ -60,7 +64,7 @@ Try {
 	$OSCaption = $OSCaption -replace "\(R\)", ""
 	$OSCaption = $OSCaption -replace "\(C\)", ""
 	$OSCaption = $OSCaption -replace ",", ""
-	if ($OSCaption -match "Server") { $OSCaption = $OSCaption -replace "Windows[ ]", ""}
+	if ($OSCaption -match "Server") { $OSCaption = $OSCaption -replace "Windows[ ]", "" }
 	$OSCaption = $OSCaption.Trim()
 
 	# and the version?
@@ -70,7 +74,7 @@ Try {
 	if ($OSVersion -match '^10') {
 		try {
 			$ReleaseID = (Get-ItemProperty -Path 'Registry::HKEY_LOCAL_MACHINE\Software\Microsoft\Windows NT\CurrentVersion' ReleaseID).ReleaseID
-			if ($ReleaseID) { $OSCaption = "${OSCaption}, Rel. $ReleaseID"}
+			if ($ReleaseID) { $OSCaption = "${OSCaption}, Rel. $ReleaseID" }
 		} catch {
 			Write-Verbose "Couldn't pull the ReleaseID from the registry"
 			Write-Verbose $_.Exception.Message
@@ -139,9 +143,9 @@ Try {
 	[string] $Serial = $BIOS.SerialNumber -replace "VMWare[-| ]", ""
 	[string] $SystemFamily = $SYS.SystemFamily
 	if ($SystemFamily.Trim() -eq "") {
-		if ($Model -match "VMware") { $SystemFamily = "VMware VM"}
+		if ($Model -match "VMware") { $SystemFamily = "VMware VM" }
 	}
-	[double] $MemoryTotal = (Get-CimInstance -class Win32_PhysicalMemory |Measure-Object -Property capacity -Sum  | % {[Math]::Round(($_.sum / 1MB), 2)})
+	[double] $MemoryTotal = (Get-CimInstance -class Win32_PhysicalMemory | Measure-Object -Property capacity -Sum | % { [Math]::Round(($_.sum / 1MB), 2) })
 
 	Add-Member -InputObject $out -MemberType NoteProperty -Name "Manufacturer" -Value $Manufacturer
 	Add-Member -InputObject $out -MemberType NoteProperty -Name "Model" -Value $Model
